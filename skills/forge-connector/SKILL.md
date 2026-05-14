@@ -1,6 +1,6 @@
 ---
 
-## name: forge-connector
+name: forge-connector
 description: >
   Guides building and deploying Atlassian Forge Teamwork Graph connector apps that ingest
   external data into Atlassian's Teamwork Graph, making it searchable in Rovo Search and
