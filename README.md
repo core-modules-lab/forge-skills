@@ -92,7 +92,7 @@ Restart Rovo Dev for the skills and MCP to be available.
 
 ## Verify the installation
 
-After install, try three quick checks.
+After install, try four quick checks.
 
 ### 1. Verify the skill layer
 
@@ -122,6 +122,14 @@ Ask:
 > What Atlaskit components should I use for a data table?
 
 You should get a response backed by the Atlassian Design System, with specific component names and import paths.
+
+### 4. Verify Forge Connector skill
+
+Ask:
+
+> I want to ingest data from an external project management tool into Rovo Search using a Forge connector app. Where do I start?
+
+You should get a structured walkthrough covering `graph:connector` app setup, `setObjects` ingestion, required scopes, and how the data surfaces in Rovo Search and Rovo Chat -- not a generic Forge tutorial.
 
 ## Prompts to try
 
