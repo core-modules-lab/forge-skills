@@ -1,19 +1,20 @@
 ---
 name: forge-app-review
 description: >
-  Reviews Forge apps for security vulnerabilities, architecture issues, cost inefficiencies, performance problems,
-  and trigger/scheduling waste before deployment. Use when the user says "review my Forge app", "check my app",
-  "pre-deploy check", "is my app ready to deploy", "audit my Forge app", "check for security issues", "check
+  Reviews Forge apps for architecture issues, cost inefficiencies, performance problems,
+  and trigger/scheduling waste before deployment. Security review is delegated to the
+  forge-security-review skill. Use when the user says "review my Forge app", "check my app",
+  "pre-deploy check", "is my app ready to deploy", "audit my Forge app", "check
   performance", "review manifest", "check my Forge app for problems", "app review", "optimize my Forge app costs",
   "reduce invocations", "why is my app expensive", "check my triggers", or any request to evaluate a Forge app's
-  quality, safety, cost efficiency, or readiness. Also triggers when users ask about Forge best practices, permission
+  quality, cost efficiency, or readiness. Also triggers when users ask about Forge best practices, permission
   scopes, resolver optimization, storage efficiency, cold start reduction, frontend offloading, trigger filtering,
   scheduled trigger frequency, N+1 API calls, bulk API usage, verbose logging, or Forge platform pricing.
 ---
 
 # Forge App Review
 
-Deep pre-deploy review of Forge apps across **Security**, **Architecture**, **Cost**, **Performance**, and **Triggers & Scheduling**. Produces a severity-sorted issue list with actionable fixes.
+Deep pre-deploy review of Forge apps across **Architecture**, **Cost**, **Performance**, and **Triggers & Scheduling**. For security findings, activate and use the **forge-security-review** skill, then merge confirmed security findings into the final report.
 
 ## Forge Pricing Reference
 
@@ -41,14 +42,15 @@ When triggered, immediately:
 
 1. Read `manifest.yml` — this is the source of truth for permissions, modules, egress, triggers, scheduled triggers, and function memory settings
 2. Read `package.json` — check dependencies, versions, scripts
-3. Scan all resolver files in `src/` — check patterns, error handling, data flow, API call patterns (N+1, missing fields, sequential calls), logging verbosity
-4. Scan UI code (Custom UI or UI Kit) — check component patterns, bridge usage, whether API calls and logic could be moved to the frontend, product context usage, invoke patterns (chatty, per-render)
-5. Check for Forge Storage / Entity Store usage patterns — TTL strategy, write frequency, query vs iteration, entity properties vs KVS
-6. Check trigger and scheduling configuration — frequency, filtering, ignoreSelf, early exit, polling vs event-driven
-7. Check for Forge Remote usage or opportunities — compute offloading, trade-offs
-8. Compile all findings into a severity-sorted issue list
+3. Activate and run the `forge-security-review` skill for security-specific analysis; include its confirmed findings in the final combined output
+4. Scan all resolver files in `src/` — check patterns, error handling, API call patterns (N+1, missing fields, sequential calls), logging verbosity, and non-security architecture/performance concerns
+5. Scan UI code (Custom UI or UI Kit) — check component patterns, bridge usage, whether API calls and logic could be moved to the frontend, product context usage, invoke patterns (chatty, per-render)
+6. Check for Forge Storage / Entity Store usage patterns — TTL strategy, write frequency, query vs iteration, entity properties vs KVS
+7. Check trigger and scheduling configuration — frequency, filtering, ignoreSelf, early exit, polling vs event-driven
+8. Check for Forge Remote usage or opportunities — compute offloading, trade-offs
+9. Compile all findings into a severity-sorted issue list
 
-Do NOT ask the user what to review. Review everything. Do NOT modify any code unless explicitly asked. Do NOT skip categories — even if the app looks clean, confirm it explicitly.
+Do NOT ask the user what to review. Review everything. Do NOT modify any code unless explicitly asked. Do NOT skip categories — even if the app looks clean, confirm it explicitly. Security checks must come from `forge-security-review` rather than this skill's internal checklist.
 
 ---
 
@@ -129,20 +131,9 @@ Produce a single issue list sorted: **Critical → Warning → Info**.
 
 ---
 
-## Security Checks
+## Security Review Delegation
 
-| ID | Check | Severity | What to Look For |
-|----|-------|----------|-----------------|
-| SEC-01 | Overly broad scopes | Critical | `read:jira-work` when only `read:jira-work:jira` (granular) is needed. Any `write:` scope that isn't actually used in code. Any `manage:` or `admin:` scope. |
-| SEC-02 | Missing egress restrictions | Critical | External `fetch()` calls in resolvers without matching `permissions.external.fetch.backend` entries in manifest. Wildcard egress domains (`*`). |
-| SEC-03 | Hardcoded secrets | Critical | API keys, tokens, passwords, or credentials in source code instead of using Forge environment variables (`process.env.FORGE_*` or `getAppEnvironmentVariable()`). |
-| SEC-04 | Missing input sanitization | Critical | User-provided data passed directly to API calls, storage keys, or rendered in Custom UI without sanitization. SQL/NoSQL injection patterns in storage queries. |
-| SEC-05 | Unsafe Custom UI CSP | Warning | `unsafe-inline`, `unsafe-eval`, or overly broad `connect-src` in Custom UI resource configuration. |
-| SEC-06 | Missing auth checks | Warning | Resolvers that don't verify user context before performing write operations. Missing `context.accountId` validation. |
-| SEC-07 | Sensitive data in storage | Warning | PII, tokens, or credentials stored in Forge Storage without encryption or with overly broad access. |
-| SEC-08 | Excessive permissions | Warning | `permissions.scopes` includes scopes not referenced by any API call in the codebase. Every scope should have a matching API usage. |
-| SEC-09 | Classic scopes used | Info | Using classic (coarse-grained) scopes like `read:jira-work` instead of granular scopes like `read:jira-work:jira`. Granular scopes are preferred. |
-| SEC-10 | Unnecessary asApp() usage | Warning | Using `api.asApp()` or `asApp()` for API calls in UI-triggered resolvers when `asUser()` would suffice. `asApp()` bypasses user permission checks — users can access data beyond their entitlements. Only use `asApp()` when there is no user context (scheduled triggers, web triggers) or when the API requires app-level auth (e.g., App Storage API). |
+Security checklist ownership lives in the `forge-security-review` skill. For any security-related request (or full pre-deploy review), activate `forge-security-review` and include its confirmed findings alongside architecture/cost/performance/trigger findings from this skill.
 
 ---
 

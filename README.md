@@ -16,6 +16,8 @@ The plugin ships multiple skills under `skills/`, each with a `SKILL.md` the hos
 
 **Forge Connector** (`skills/forge-connector/`) guides building `graph:connector` apps that ingest external data into Atlassian's Teamwork Graph, making it searchable in Rovo Search and surfaced in Rovo Chat.
 
+**Forge Security Review** (`skills/forge-security-review/`) performs white-box Forge app security audits with rule-driven checks for authz, injection, tenant isolation, secrets handling, egress/remotes, web triggers, and optional static-analysis workflows.
+
 ### Forge MCP Server
 
 Gives your agent access to up-to-date Forge documentation, template registries, module configuration, manifest syntax, and UI Kit/backend API guides -- so its knowledge stays current rather than relying on training data.
@@ -24,16 +26,15 @@ Gives your agent access to up-to-date Forge documentation, template registries, 
 
 Provides Atlassian Design System lookup for Custom UI apps: component discovery, token reference, and icon search via the `@atlaskit` library.
 
-
-| Component                   | What it adds                                              | Examples                                                               |
-| --------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **Forge App Builder skill** | Scaffold, deploy, install, module choice, CLI workflows   | `forge create`, environments, cross-product scopes                     |
-| **Forge App Review skill**  | Pre-deploy review: security, cost, architecture, triggers | Audit before release, reduce invocations, find misconfigurations       |
-| **Forge Debugger skill**    | Diagnose deploy, runtime, UI, and permission issues       | Logs, blank panels, resolver errors, missing app in UI                 |
-| **Forge Connector skill**   | Ingest external data into Teamwork Graph / Rovo           | graph:connector, setObjects, Rovo Search, Rovo Chat                    |
-| **Forge MCP Server**        | Live Forge documentation and tooling                      | Template lookup, manifest syntax, UI Kit guides, backend API reference |
-| **ADS MCP Server**          | Atlassian Design System lookup                            | Component discovery, token reference, icon lookup (Custom UI only)     |
-
+| Component                       | What it adds                                              | Examples                                                               |
+| ------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Forge App Builder skill**     | Scaffold, deploy, install, module choice, CLI workflows   | `forge create`, environments, cross-product scopes                     |
+| **Forge App Review skill**      | Pre-deploy review: security, cost, architecture, triggers | Audit before release, reduce invocations, find misconfigurations       |
+| **Forge Debugger skill**        | Diagnose deploy, runtime, UI, and permission issues       | Logs, blank panels, resolver errors, missing app in UI                 |
+| **Forge Connector skill**       | Ingest external data into Teamwork Graph / Rovo           | graph:connector, setObjects, Rovo Search, Rovo Chat                    |
+| **Forge Security Review skill** | White-box security audits and exploitability reporting    | AuthZ bypasses, injection, tenant isolation, static analysis workflows |
+| **Forge MCP Server**            | Live Forge documentation and tooling                      | Template lookup, manifest syntax, UI Kit guides, backend API reference |
+| **ADS MCP Server**              | Atlassian Design System lookup                            | Component discovery, token reference, icon lookup (Custom UI only)     |
 
 ## Prerequisites
 
@@ -50,16 +51,16 @@ Before you install, make sure you have:
 ```
 /plugin install forge-skills@atlassian-forge-skills
 ```
+
 ### Cursor
 
 The Forge Skills plugin can be installed directly from the [Cursor Marketplace](https://cursor.com/marketplace/atlassian/forge-skills)
 
-Or by running the following command in chat with a Cursor agent: 
+Or by running the following command in chat with a Cursor agent:
 
 ```
 /add-plugin forge-skills
 ```
-
 
 ### Gemini CLI
 
@@ -82,6 +83,7 @@ Coming soon
 Rovo Dev doesn't currently support plugin installations but you can install the skills and MCP servers separately.
 
 Install the skills:
+
 ```bash
 npx skills add atlassian/forge-skills
 ```
@@ -106,6 +108,7 @@ Optionally confirm the other skills are available:
 
 - **Review:** e.g. “Review my Forge app for security and unnecessary trigger invocations before I deploy.”
 - **Debug:** e.g. “My Forge issue panel is blank after deploy -- help me trace it.”
+- **Security:** e.g. “Run a white-box security review on this Forge app and include CVSS-scored findings.”
 
 ### 2. Verify Forge MCP
 
@@ -143,20 +146,20 @@ Once the plugin is installed, try prompts like these:
 - `Deploy my Forge app to my staging site.`
 - `What scopes do I need for a Confluence app that also reads Jira data?`
 - `Review my Forge app for cost and security before production.`
+- `Run a white-box security audit of this Forge app and focus on authz bypass and web trigger abuse.`
 - `forge deploy fails with [error] -- what should I check?`
 
 ## What you get
 
-
-| Component             | Default location                                                                               | Purpose                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| **Forge App Builder** | `skills/forge-app-builder/`                                                                    | Create, deploy, install; helper scripts and tests                              |
-| **Forge App Review**  | `skills/forge-app-review/`                                                                     | Pre-deploy review and audits (`SKILL.md`, README)                              |
-| **Forge Connector**   | `skills/forge-connector/`                                                                      | Build graph:connector apps; ingest data into Teamwork Graph (SKILL.md, README) |
-| **Forge Debugger**    | `skills/forge-debugger/`                                                                       | Troubleshooting and diagnostics (`SKILL.md`, README)                           |
-| **MCP config**        | `.mcp.json`                                                                                    | Forge MCP Server and ADS MCP Server configuration                              |
-| **Plugin manifests**  | `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/`, `plugin.json`, `gemini-extension.json` | Per-host plugin metadata and MCP wiring                                        |
-
+| Component                 | Default location                                                                               | Purpose                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Forge App Builder**     | `skills/forge-app-builder/`                                                                    | Create, deploy, install; helper scripts and tests                              |
+| **Forge App Review**      | `skills/forge-app-review/`                                                                     | Pre-deploy review and audits (`SKILL.md`, README)                              |
+| **Forge Connector**       | `skills/forge-connector/`                                                                      | Build graph:connector apps; ingest data into Teamwork Graph (SKILL.md, README) |
+| **Forge Debugger**        | `skills/forge-debugger/`                                                                       | Troubleshooting and diagnostics (`SKILL.md`, README)                           |
+| **Forge Security Review** | `skills/forge-security-review/`                                                                | White-box security audits with rule assets (`SKILL.md`, README, assets/)       |
+| **MCP config**            | `.mcp.json`                                                                                    | Forge MCP Server and ADS MCP Server configuration                              |
+| **Plugin manifests**      | `.cursor-plugin/`, `.claude-plugin/`, `.codex-plugin/`, `plugin.json`, `gemini-extension.json` | Per-host plugin metadata and MCP wiring                                        |
 
 ## Authentication
 
@@ -179,7 +182,7 @@ forge whoami
 ### The agent is not using Forge skills
 
 - Make sure the plugin installed successfully in your host
-- Confirm the `skills/` directory includes `forge-app-builder`, `forge-app-review`, and `forge-debugger` (each with a `SKILL.md` where applicable)
+- Confirm the `skills/` directory includes `forge-app-builder`, `forge-app-review`, `forge-debugger`, `forge-connector`, and `forge-security-review` (each with a `SKILL.md` where applicable)
 - Reload or restart your host so it re-indexes plugins and MCP configuration
 
 ### MCP tools are not showing up
