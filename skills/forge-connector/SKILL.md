@@ -51,7 +51,7 @@ Builds a `graph:connector` Forge app that ingests external data into Atlassian's
 
 ---
 
-## Agent Workflow — Complete Steps 0–5 in Order
+## Agent Workflow — Complete Steps 0–6 in Order
 
 ### Step 0: Prerequisites
 
@@ -80,23 +80,85 @@ Tell the user:
 
 The `--dev-space-id` flag in the scaffold script is optional and can be omitted — the script has been updated to skip it when not provided.
 
+### Step 1.5: Discover Data & Map to Object Types
+
+**Do this before scaffolding.** Ask the user the following questions to determine the correct Teamwork Graph object type(s). Do not assume or default to `atlassian:document`.
+
+#### Questions to ask the user
+
+1. **What external system or tool are you connecting?**
+   e.g. Google Drive, ServiceNow, Salesforce, GitHub, Confluence, Slack, Figma, Zendesk
+
+2. **What kind of content do you want to make searchable in Rovo?**
+   Prompt with examples to help them identify it:
+   - Files, pages, wiki articles, reports, PDFs → likely `atlassian:document`
+   - Tasks, tickets, issues, bugs, stories → likely `atlassian:work-item`
+   - Chat messages, emails, comments → likely `atlassian:message` or `atlassian:comment`
+   - Projects, workspaces, boards → likely `atlassian:project`
+   - Code repositories → likely `atlassian:repository`
+   - Pull requests / merge requests → likely `atlassian:pull-request`
+   - Git commits → likely `atlassian:commit`
+   - Design files (Figma, Sketch) → likely `atlassian:design`
+   - Video recordings → likely `atlassian:video`
+   - Calendar events, meetings → likely `atlassian:calendar-event`
+   - Threads, channels → likely `atlassian:conversation`
+   - Customer accounts or organisations → likely `atlassian:customer-organization`
+   - Team spaces or org units → likely `atlassian:space`
+
+3. **Is the content a single type or a mix?**
+   If mixed (e.g. a project management tool with tasks *and* documents), plan to ingest each as its own object type. The scaffold supports one primary type — you can add more `objectTypes` entries in `manifest.yml` later.
+
+4. **Does the admin need to supply credentials (API key, URL, OAuth token) to connect?**
+   Yes → use `--has-form-config` in the scaffold command.
+   No (data comes entirely from within Atlassian) → omit the flag.
+
+5. **How often does the source data change?**
+   Frequently (hourly) → plan a `scheduledTrigger` with `interval: hour`.
+   Daily or less → `interval: day`.
+   Static / one-off → no scheduled trigger needed.
+
+6. **Who should be able to see the ingested content in Rovo Search?**
+   This determines the `permissions.accessControls` on each object. Ask:
+   - "Is all this content publicly accessible, or does the source system restrict who can see what?"
+   - "Do you want Rovo Search results to respect those source-system permissions?"
+
+   Map the answer to the correct principal model:
+
+   | Source system access model | `accessControls` to use |
+   |---|---|
+   | Publicly accessible, no restrictions | `principals: [{ type: 'EVERYONE' }]` |
+   | Specific named users have access | `principals: [{ type: 'user', id: '<atlassian-account-id>' }]` — one entry per user |
+   | Team or group based (e.g. Confluence space, Google Workspace group) | `principals: [{ type: 'group', id: '<group-id>' }]` — one entry per group |
+   | Private / owner only | single `user` principal with the owner's Atlassian account ID |
+   | Mixed (per-object ACLs from the source) | fetch ACLs per item during ingestion and map each to a `user` or `group` principal |
+
+   **Do NOT default to `EVERYONE`** unless the user explicitly confirms content is publicly accessible. Using `EVERYONE` on restricted content leaks data to users who shouldn't see it in Rovo Search.
+
+   Record the chosen permission model before proceeding to Step 2. Reference it when writing the `setObjects` call in Step 3.
+
+#### Mapping decision
+
+Based on the answers, select the best-fit type from the Object Types table below. Only fall back to `atlassian:document` if the content genuinely has no better match (e.g. arbitrary file attachments). For types marked ❌ in the "Indexed in Rovo" column (`atlassian:build`, `atlassian:deployment`, `atlassian:test`), warn the user that those objects will not appear in Rovo Search or Rovo Chat.
+
+Record the chosen object type(s) and permission model before proceeding to Step 2.
+
 ### Step 2: Scaffold the Connector App
 
-Run from the **skill directory** (the directory containing this SKILL.md). `--dev-space-id` is optional:
+Run from the **skill directory** (the directory containing this SKILL.md). Replace `<object-type>` with the type determined in Step 1.5. `--dev-space-id` is optional:
 
 ```bash
 python3 -m scripts.scaffold_connector \
   --name <app-name> \
   --connector-name "<Human Readable Name>" \
-  --object-type atlassian:document \
+  --object-type <object-type> \
   --directory <parent-directory>
 ```
 
 Add `--dev-space-id <id>` only if you have the ID from a previous step.
 
-**Object type selection** — pick the type that best matches the content being ingested (see Object Types table). For mixed content, use `atlassian:document` as the default.
+**Object type** — use the type chosen in Step 1.5. Do NOT default to `atlassian:document` without first completing the discovery questions above.
 
-**Form config flag** — add `--has-form-config` if the admin must provide API credentials or connection details (typical for external systems). Omit it for apps that operate entirely within Atlassian (no external credentials needed).
+**Form config flag** — add `--has-form-config` if the admin must provide API credentials or connection details (determined in Step 1.5 question 4). Omit it for apps that operate entirely within Atlassian (no external credentials needed).
 
 > **If scaffold fails because `forge create` needs a TTY:** The scaffold script will print a manual fallback command. Have the user run `forge create` interactively, then continue from Step 3 — the scaffold script only needs to write `manifest.yml` and `src/index.js` after the directory exists.
 
@@ -138,9 +200,13 @@ const result = await graph.setObjects({
       url: 'https://source-system.example.com/doc/123',
       createdAt: '2024-01-15T10:00:00Z',        // ISO 8601
       lastUpdatedAt: '2024-01-20T14:30:00Z',
+      // Use the permission model chosen in Step 1.5 question 6.
+      // EVERYONE only if content is confirmed publicly accessible.
+      // For user-restricted content: { type: 'user', id: '<atlassian-account-id>' }
+      // For group-restricted content: { type: 'group', id: '<group-id>' }
       permissions: [{
         accessControls: [{
-          principals: [{ type: 'EVERYONE' }],   // or restrict to specific users
+          principals: [{ type: 'EVERYONE' }],
         }],
       }],
       'atlassian:document': {
@@ -509,6 +575,7 @@ async function ingestAllData(connectionId, config) {
         url: item.url,
         createdAt: item.createdAt,
         lastUpdatedAt: item.updatedAt,
+        // Replace with user/group principals if source system has access controls.
         permissions: [{
           accessControls: [{ principals: [{ type: 'EVERYONE' }] }],
         }],
