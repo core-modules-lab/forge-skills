@@ -117,11 +117,30 @@ The `--dev-space-id` flag in the scaffold script is optional and can be omitted 
    Daily or less → `interval: day`.
    Static / one-off → no scheduled trigger needed.
 
+6. **Who should be able to see the ingested content in Rovo Search?**
+   This determines the `permissions.accessControls` on each object. Ask:
+   - "Is all this content publicly accessible, or does the source system restrict who can see what?"
+   - "Do you want Rovo Search results to respect those source-system permissions?"
+
+   Map the answer to the correct principal model:
+
+   | Source system access model | `accessControls` to use |
+   |---|---|
+   | Publicly accessible, no restrictions | `principals: [{ type: 'EVERYONE' }]` |
+   | Specific named users have access | `principals: [{ type: 'user', id: '<atlassian-account-id>' }]` — one entry per user |
+   | Team or group based (e.g. Confluence space, Google Workspace group) | `principals: [{ type: 'group', id: '<group-id>' }]` — one entry per group |
+   | Private / owner only | single `user` principal with the owner's Atlassian account ID |
+   | Mixed (per-object ACLs from the source) | fetch ACLs per item during ingestion and map each to a `user` or `group` principal |
+
+   **Do NOT default to `EVERYONE`** unless the user explicitly confirms content is publicly accessible. Using `EVERYONE` on restricted content leaks data to users who shouldn't see it in Rovo Search.
+
+   Record the chosen permission model before proceeding to Step 2. Reference it when writing the `setObjects` call in Step 3.
+
 #### Mapping decision
 
 Based on the answers, select the best-fit type from the Object Types table below. Only fall back to `atlassian:document` if the content genuinely has no better match (e.g. arbitrary file attachments). For types marked ❌ in the "Indexed in Rovo" column (`atlassian:build`, `atlassian:deployment`, `atlassian:test`), warn the user that those objects will not appear in Rovo Search or Rovo Chat.
 
-Record the chosen type(s) before proceeding to Step 2.
+Record the chosen object type(s) and permission model before proceeding to Step 2.
 
 ### Step 2: Scaffold the Connector App
 
@@ -181,9 +200,13 @@ const result = await graph.setObjects({
       url: 'https://source-system.example.com/doc/123',
       createdAt: '2024-01-15T10:00:00Z',        // ISO 8601
       lastUpdatedAt: '2024-01-20T14:30:00Z',
+      // Use the permission model chosen in Step 1.5 question 6.
+      // EVERYONE only if content is confirmed publicly accessible.
+      // For user-restricted content: { type: 'user', id: '<atlassian-account-id>' }
+      // For group-restricted content: { type: 'group', id: '<group-id>' }
       permissions: [{
         accessControls: [{
-          principals: [{ type: 'EVERYONE' }],   // or restrict to specific users
+          principals: [{ type: 'EVERYONE' }],
         }],
       }],
       'atlassian:document': {
@@ -552,6 +575,7 @@ async function ingestAllData(connectionId, config) {
         url: item.url,
         createdAt: item.createdAt,
         lastUpdatedAt: item.updatedAt,
+        // Replace with user/group principals if source system has access controls.
         permissions: [{
           accessControls: [{ principals: [{ type: 'EVERYONE' }] }],
         }],
