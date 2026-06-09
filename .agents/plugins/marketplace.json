@@ -8,7 +8,8 @@
       "name": "forge-skills",
       "source": {
         "source": "local",
-        "path": "."
+        "path": "./plugins/forge-skills"
+"
       },
       "policy": {
         "installation": "AVAILABLE",
