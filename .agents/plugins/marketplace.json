@@ -9,7 +9,6 @@
       "source": {
         "source": "local",
         "path": "./plugins/forge-skills"
-"
       },
       "policy": {
         "installation": "AVAILABLE",
