@@ -12,6 +12,8 @@ The plugin ships multiple skills under `skills/`, each with a `SKILL.md` the hos
 
 **Forge App Review** (`skills/forge-app-review/`) supports pre-deploy review and audits: security, architecture, cost and invocation efficiency, performance, and trigger or scheduling waste.
 
+**Forge Cost Optimizer** (`skills/forge-cost-optimizer/`) helps reduce Forge platform consumption across invocations, storage, logs, memory, triggers, API calls, and frontend/backend boundaries.
+
 **Forge Debugger** (`skills/forge-debugger/`) supports systematic troubleshooting when something breaks: `forge` / deploy errors, resolver failures, blank or missing UI, scopes and permissions, and apps that “stopped working” in Jira or Confluence.
 
 **Forge Connector** (`skills/forge-connector/`) guides building `graph:connector` apps that ingest external data into Atlassian's Teamwork Graph, making it searchable in Rovo Search and surfaced in Rovo Chat.
@@ -30,6 +32,7 @@ Provides Atlassian Design System lookup for Custom UI apps: component discovery,
 | ------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **Forge App Builder skill**     | Scaffold, deploy, install, module choice, CLI workflows   | `forge create`, environments, cross-product scopes                     |
 | **Forge App Review skill**      | Pre-deploy review: security, cost, architecture, triggers | Audit before release, reduce invocations, find misconfigurations       |
+| **Forge Cost Optimizer skill**  | Reduce Forge platform consumption and avoid waste         | Invocations, storage writes, logs, memory, triggers                    |
 | **Forge Debugger skill**        | Diagnose deploy, runtime, UI, and permission issues       | Logs, blank panels, resolver errors, missing app in UI                 |
 | **Forge Connector skill**       | Ingest external data into Teamwork Graph / Rovo           | graph:connector, setObjects, Rovo Search, Rovo Chat                    |
 | **Forge Security Review skill** | White-box security audits and exploitability reporting    | AuthZ bypasses, injection, tenant isolation, static analysis workflows |
@@ -174,6 +177,7 @@ Once the plugin is installed, try prompts like these:
 | ------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Forge App Builder**     | `skills/forge-app-builder/`                                                                    | Create, deploy, install; helper scripts and tests                              |
 | **Forge App Review**      | `skills/forge-app-review/`                                                                     | Pre-deploy review and audits (`SKILL.md`, README)                              |
+| **Forge Cost Optimizer**  | `skills/forge-cost-optimizer/`                                                                | Reduce Forge platform consumption across invocations, storage, logs, and memory |
 | **Forge Connector**       | `skills/forge-connector/`                                                                      | Build graph:connector apps; ingest data into Teamwork Graph (SKILL.md, README) |
 | **Forge Debugger**        | `skills/forge-debugger/`                                                                       | Troubleshooting and diagnostics (`SKILL.md`, README)                           |
 | **Forge Security Review** | `skills/forge-security-review/`                                                                | White-box security audits with rule assets (`SKILL.md`, README, assets/)       |
