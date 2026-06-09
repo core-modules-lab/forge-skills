@@ -76,7 +76,26 @@ copilot plugin install atlassian/forge-skills
 
 ### OpenAI Codex
 
-Coming soon
+Install the Forge Skills marketplace:
+
+```bash
+codex plugin marketplace add atlassian/forge-skills --ref main
+```
+
+Then install the plugin:
+
+```bash
+codex plugin add forge-skills@atlassian-forge-skills
+```
+
+Start a new Codex thread after installing so the Forge skills and MCP servers are loaded.
+
+To refresh the marketplace after updates:
+
+```bash
+codex plugin marketplace upgrade atlassian-forge-skills
+codex plugin add forge-skills@atlassian-forge-skills
+```
 
 ### Rovo Dev
 
