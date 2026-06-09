@@ -1,66 +1,71 @@
 # Forge Debugger Skill
 
-Diagnoses and fixes issues in Atlassian Forge apps. Use this skill whenever a Forge app has errors, crashes, shows blank UI, fails to deploy, doesn't appear after installation, has permission issues, or produces unexpected output. Trigger on any mention of forge logs, forge deploy errors, resolver errors, blank panels, missing scopes, Custom UI not rendering, or any Jira/Confluence app that "stopped working".
+Diagnoses known failures in Atlassian Forge apps. Use it when there is an observed symptom, error message, broken behavior, failed command, or log output to investigate.
 
-## Installation
+This skill is the incident/debugging lane. It works from evidence such as `forge lint`, deploy output, tunnel/log output, stack traces, app visibility problems, resolver errors, or blank UI, then drives toward a root cause and fix.
 
-### Cursor
+## Use For
 
-Clone this repository into your Cursor skills directory:
+- `forge deploy`, `forge install`, `forge lint`, or CLI failures
+- Blank UI, missing panels, missing macros, or modules that do not appear after install
+- Resolver errors, `invoke()` mismatches, handler path problems, or unexpected `undefined` responses
+- Permission/scope failures, 403s, 410 Gone API migration issues, or production vs development differences
+- Custom UI build/deploy problems, missing static assets, or frontend not rendering
+- Apps that previously worked and now fail
 
-```bash
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git ~/.cursor/skills/forge-debugger
+## Do Not Use For
+
+- General pre-release readiness checks without an observed failure
+- Deep security audit, SAST, authz, secrets, tenant isolation, exploitability, or CVSS reporting
+- Cost optimization, invocation reduction, storage/log tuning, memory tuning, or trigger-frequency optimization
+- Creating a new Forge app from scratch
+
+## Specialist Handoffs
+
+- Use `forge-app-review` for broad pre-deploy readiness and architecture review when nothing is known to be broken.
+- Use `forge-security-review` for deep security audit, SAST, authz, secrets, tenant isolation, exploitability, and CVSS reporting.
+- Use `forge-cost-optimizer` for reducing invocations, GB-seconds, storage/log volume, trigger frequency, memory, and Forge platform consumption.
+- Use `forge-app-builder` for creating, deploying, and installing a new Forge app workflow.
+
+## What It Checks
+
+- CLI and environment: Forge CLI version, login state, Node/npm state, and whether commands run in the app root.
+- Manifest wiring: module keys, resource paths, function handlers, handler path resolution, scopes, products, and environments.
+- Build/deploy state: `forge lint`, Custom UI build artifacts, deploy/install output, and product/site mismatch.
+- Runtime evidence: `forge logs`, tunnel output, resolver stack traces, permissions errors, and API response status.
+- Source wiring: `invoke()` names vs `resolver.define()` names, handler exports, missing files, and frontend/backend contract mismatches.
+- Cleanup: remove temporary debug logs or verbose diagnostics once the root cause is resolved.
+
+## Debugging Flow
+
+1. Classify the symptom: deploy-time, install/visibility, runtime, UI rendering, permissions, production-only, or regression.
+2. Run cheap checks first: `forge lint`, versions, package install/build status.
+3. Follow the evidence: deploy output, logs, tunnel output, stack traces, and manifest/source wiring.
+4. Fix the first confirmed root cause before continuing to deeper layers.
+5. Validate with the narrowest relevant command, then redeploy or reinstall when needed.
+
+Interactive exceptions: `forge login` and `forge tunnel` may require the user to run them in their own terminal.
+
+## Example Prompts
+
+```text
+My Forge issue panel is blank after deploy. Debug it.
 ```
 
-The skill will be automatically discovered by Cursor. Use it when debugging Forge apps by mentioning errors, deploy failures, blank panels, or similar issues.
-
-**Alternative (project-scoped):** To make the skill available only for a specific project, clone into the project's `.cursor/skills/` directory:
-
-```bash
-mkdir -p .cursor/skills
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git .cursor/skills/forge-debugger
+```text
+forge deploy fails with this manifest error: <paste error>
 ```
 
-### Rovo Dev
-
-Clone this repository into your Rovo Dev skills directory:
-
-```bash
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git ~/.agents/skills/forge-debugger
+```text
+My resolver returns undefined and there are no logs.
 ```
 
-The skill will be automatically discovered by Rovo Dev. Use it when debugging Forge apps by mentioning forge logs, deploy errors, resolver issues, or similar.
-
-**Alternative (project-scoped):** To make the skill available only for a specific project, clone into the project's `.agents/skills/` directory:
-
-```bash
-mkdir -p .agents/skills
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git .agents/skills/forge-debugger
+```text
+The app works in development but fails in production on customer.atlassian.net.
 ```
 
-### Claude Code
-
-Clone this repository into your Claude Code skills directory:
-
-```bash
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git ~/.claude/skills/forge-debugger
+```text
+I get a 403 from requestJira after adding a new feature.
 ```
 
-The skill will be automatically discovered by Claude Code. Use it when debugging Forge apps by mentioning forge logs, deploy errors, resolver issues, or similar.
-
-**Alternative (project-scoped):** To make the skill available only for a specific project, clone into the project's `.claude/skills/` directory:
-
-```bash
-mkdir -p .claude/skills
-git clone https://bitbucket.org/atlassianlabs/forge-debugger-skill.git .claude/skills/forge-debugger
-```
-
-## What This Skill Provides
-
-- **Structured diagnostic workflow** — Step-by-step checklist to identify root causes quickly: version checks, lint, build verification, deploy status, and log analysis
-- **Common error pattern matching** — Instant lookup table covering 15+ frequent Forge errors (blank UI, resolver not found, 403s, 410 Gone, handler path issues, and more)
-- **Autonomous execution** — The agent runs diagnostic and fix commands directly, without asking permission or presenting copy-paste instructions
-- **API migration guidance** — Handles v1 → v2 REST API migration for Confluence and Jira endpoints
-- **Token-efficient debugging** — Prioritizes cheap checks first (lint, version) and stops at root cause to minimize context usage
-
-See [SKILL.md](SKILL.md) for the full skill content.
+See [SKILL.md](SKILL.md) for the full diagnostic workflow and common error patterns.
