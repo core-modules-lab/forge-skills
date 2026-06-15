@@ -51,7 +51,7 @@ Builds a `graph:connector` Forge app that ingests external data into Atlassian's
 
 ---
 
-## Agent Workflow — Complete Steps 0–6 in Order
+## Agent Workflow — Complete Steps 0–7 in Order
 
 ### Step 0: Prerequisites
 
@@ -335,6 +335,86 @@ forge logs -e production --site <your-site> --limit 50
 | Connector function timed out before tunnel caught it | `forge logs` with `--limit 100` |
 
 > **Note:** `forge tunnel` must be run by the user in an interactive terminal — do not attempt to run it via the agent.
+
+### Step 7: End-to-End Verification (optional)
+
+Before running any checks, ask the user:
+
+> "Would you like to run end-to-end verification checks before deploying to production? This confirms the connection, ingestion, Rovo Search visibility, and permission boundaries are all working correctly."
+
+If the user says **no** or wants to skip, move on — do not run or describe the checks.
+If the user says **yes**, work through every check below in order.
+
+#### Check 1 — Connection established
+
+In **Atlassian Administration → Apps → Connected apps**, the connector should show status **Connected**. If it shows an error or pending state, go back to Step 6 and inspect `forge tunnel` or `forge logs` output.
+
+#### Check 2 — `validateConnection` passed (if configured)
+
+If the app has a `validateConnection` function, confirm the admin saw a success message when clicking **Connect**. If not, check logs for the return value — it must be `{ success: true }`, not a thrown error.
+
+#### Check 3 — `onConnectionChange` fired and ingestion ran
+
+In `forge logs` or the tunnel output, confirm:
+
+```bash
+forge logs -e development --limit 50
+```
+
+Look for all three signals:
+- Handler was invoked: log line from `onConnectionChangeHandler` with `action: CREATED`
+- Data was fetched: e.g. `[connector] Fetched N items`
+- `setObjects` succeeded: e.g. `[connector] Batch 1: N accepted, 0 rejected`
+
+If `setObjects` returned `{ success: false }`, the error detail is in `result.error` — surface it to the user and fix before continuing.
+
+#### Check 4 — Objects visible in Rovo Search
+
+1. Open Rovo Search on the Jira site (allow up to **5 minutes** for indexing after ingestion)
+2. Search for a word that appears in at least one ingested object's `displayName` or content text
+3. Filter by the connector's nickname (set by admin at connection time)
+
+At least one result from the connector should appear. If nothing shows up after 5 minutes:
+- Confirm `setObjects` logged `N accepted` with N > 0 (Check 3)
+- Confirm the object's `permissions` match the logged-in user (an `EVERYONE` principal or a `user`/`group` principal that includes the test user)
+- Re-check that `write:object:jira` scope is present in `manifest.yml` and the app was redeployed after any scope change
+
+#### Check 5 — Permission boundary (skip only if `EVERYONE` was used)
+
+If the connector uses `user` or `group` principals:
+1. Log in as a user who **should** have access → confirm the object appears in Rovo Search
+2. Log in as a user who **should not** have access → confirm the object does **not** appear
+
+If a restricted object is visible to an unauthorised user, re-check the `accessControls` principals in `setObjects` and redeploy.
+
+#### Check 6 — Rovo Chat references connector data
+
+Ask Rovo Chat a question whose answer exists only in the ingested content, e.g.:
+
+> "What is the status of [title of an ingested item]?"
+
+Rovo Chat should cite the connector as a source. If it cannot find the content, Checks 3 and 4 likely have an unresolved issue.
+
+#### Check 7 — Scheduled re-ingestion fires (if configured)
+
+If a `scheduledTrigger` was added:
+1. Temporarily set `interval: fiveMinutes` in `manifest.yml`, redeploy, and wait one cycle
+2. Confirm `forge logs` shows a fresh ingestion run from `refreshIngestionHandler`
+3. Restore the original interval and redeploy before going to production
+
+#### Production readiness gate
+
+If the user chose to run verification, only proceed to a production deploy (`forge deploy -e production`) when **all applicable checks above pass**:
+
+| Check | Required for production |
+|---|---|
+| 1 — Connection established | Always |
+| 2 — validateConnection passed | Only if `validateConnection` is configured |
+| 3 — Ingestion ran without errors | Always |
+| 4 — Objects visible in Rovo Search | Always |
+| 5 — Permission boundary | Only if using `user`/`group` principals |
+| 6 — Rovo Chat cites connector | Always |
+| 7 — Scheduled re-ingestion fires | Only if `scheduledTrigger` is configured |
 
 ---
 
