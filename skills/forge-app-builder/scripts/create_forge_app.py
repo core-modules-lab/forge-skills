@@ -15,12 +15,16 @@ import json
 
 # Relative imports — scripts/ is a package; run as python -m scripts.create_forge_app from skill dir
 from . import list_templates as list_templates_module
+from .forge_env import forge_env
+
+# Environment for every Forge CLI invocation this script spawns.
+_FORGE_ENV = forge_env("forge-app-builder")
 
 def validate_prerequisites():
     """Check if Forge CLI and Node.js are available"""
     try:
-        subprocess.run(['forge', '--version'], capture_output=True, check=True)
-        subprocess.run(['node', '-v'], capture_output=True, check=True)
+        subprocess.run(['forge', '--version'], capture_output=True, check=True, env=_FORGE_ENV)
+        subprocess.run(['node', '-v'], capture_output=True, check=True, env=_FORGE_ENV)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -59,7 +63,7 @@ def discover_dev_spaces():
     try:
         result = subprocess.run(
             ['forge', 'developer-spaces', 'list', '--json'],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True, text=True, timeout=30, env=_FORGE_ENV,
         )
         if result.returncode != 0:
             print(f"⚠️  forge developer-spaces list failed: {result.stderr.strip()}")
@@ -139,7 +143,7 @@ def create_app(template, app_name, output_dir=None, dev_space_id=None):
         print(f"\n📦 Creating Forge app: {app_name}")
         print(f"📋 Template: {template}")
         print(f"📂 Location: {cwd}")
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, env=_FORGE_ENV)
 
         if result.returncode != 0:
             stderr = result.stderr.strip()
@@ -191,7 +195,7 @@ def main():
             print("\n📋 Please create a developer space at:")
             print("   https://developer.atlassian.com/console/")
             print("\nThen run this script again, or use 'forge create' interactively:")
-            print(f"   forge create --template {args.template} {args.name}")
+            print(f"   ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-app-builder forge create --template {args.template} {args.name}")
             sys.exit(1)
         
         # Step 1b: Ask user which dev space to use

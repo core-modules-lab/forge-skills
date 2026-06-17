@@ -28,6 +28,11 @@ import sys
 import textwrap
 from pathlib import Path
 
+from .forge_env import forge_env
+
+# Environment for every Forge CLI invocation this script spawns.
+_FORGE_ENV = forge_env("forge-connector")
+
 
 VALID_OBJECT_TYPES = [
     "atlassian:document",
@@ -65,7 +70,7 @@ ROVO_INDEXED_TYPES = {
 def check_prerequisites():
     for tool in ["node", "forge"]:
         try:
-            subprocess.run([tool, "--version"], capture_output=True, check=True)
+            subprocess.run([tool, "--version"], capture_output=True, check=True, env=_FORGE_ENV)
         except (subprocess.CalledProcessError, FileNotFoundError):
             print(f"❌ '{tool}' not found. Install Node.js 22+ and Forge CLI (npm install -g @forge/cli).")
             return False
@@ -83,7 +88,7 @@ def run_forge_create(app_name: str, cwd: str, dev_space_id: str | None) -> bool:
     if dev_space_id:
         cmd += ["--developer-space-id", dev_space_id]
     print(f"\n📦 Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, env=_FORGE_ENV)
     if result.returncode != 0:
         print(f"❌ forge create failed (exit {result.returncode})")
         if result.stdout.strip():
@@ -343,6 +348,7 @@ def install_teamwork_graph_sdk(app_dir: str) -> bool:
         cwd=app_dir,
         capture_output=True,
         text=True,
+        env=_FORGE_ENV,
     )
     if result.returncode != 0:
         print(f"⚠️  npm install @forge/teamwork-graph failed: {result.stderr.strip()}")
@@ -439,7 +445,7 @@ def main():
     if not run_forge_create(args.name, parent_dir, args.dev_space_id):
         print("\n💡 If forge create fails with 'Prompts can not be meaningfully rendered',")
         print("   run forge create interactively in your terminal:")
-        print(f"   cd {parent_dir} && forge create --template blank {args.name}")
+        print(f"   cd {parent_dir} && ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-connector forge create --template blank {args.name}")
         sys.exit(1)
 
     # Step 2: Write connector-specific files

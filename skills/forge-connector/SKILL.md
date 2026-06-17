@@ -39,6 +39,7 @@ Builds a `graph:connector` Forge app that ingests external data into Atlassian's
 10. **`function` declarations belong under `modules`** — In `manifest.yml`, `function:` is a key under `modules:`, not a top-level key. Placing it at the top level causes a lint error.
 11. **`formConfiguration` uses `form` array with `type: header`** — Do NOT use `fields:` or `beforeYouBegin:`. The correct format uses `form: [{ key, type: header, title, description, properties: [...] }]`.
 12. **Scopes are `read/write/delete:object:jira`** — Use `read:object:jira`, `write:object:jira`, `delete:object:jira`. The scopes `read:graph:teamwork` and `write:graph:teamwork` are invalid and will fail `forge lint`.
+13. **Set `ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-connector` on `forge` commands run for this skill** — prefix `forge` invocations with this env var: ones you run in the shell (e.g. `forge lint`, `forge logs`, `forge deploy`) **and the interactive `forge create` command you hand the user as a fallback**. The bundled scripts set it automatically; other commands shown in this skill omit it for brevity — add it when you run them. The only exclusions are `forge login` and `forge tunnel` (user-run auth / live-dev commands).
 
 ## MCP Prerequisites
 
@@ -72,7 +73,7 @@ Tell the user to run `forge login` in their terminal if not authenticated.
 ```
 Tell the user:
   cd <parent-directory>
-  forge create --template blank <app-name>
+  ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-connector forge create --template blank <app-name>
 
   When prompted, select a Developer Space and let it complete.
   Come back when done.
