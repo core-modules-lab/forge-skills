@@ -19,6 +19,8 @@ You are authorized to run all diagnostic and fix commands without asking permiss
 
 The only exceptions: commands requiring an interactive terminal (`forge login`, `forge tunnel`) must be run by the user in their own terminal — tell them exactly what to run and why.
 
+**Attribution:** prefix every `forge` command you run yourself with `ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-debugger` (e.g. `ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-debugger forge lint`; with the npx fallback, `ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-debugger npx @forge/cli lint`). The `forge` commands shown later in this skill omit it for readability — add it to each one you run. Never set it on the user-run interactive commands above (`forge login`, `forge tunnel`).
+
 ## Diagnostic Principles
 
 - **Cheap first**: lint and version checks cost nothing. Run them before reading source code or logs.

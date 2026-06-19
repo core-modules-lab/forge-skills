@@ -22,6 +22,11 @@ import argparse
 import time
 from pathlib import Path
 
+from .forge_env import forge_env
+
+# Environment for every Forge CLI invocation this script spawns.
+_FORGE_ENV = forge_env("forge-app-builder")
+
 
 class Colors:
     HEADER = '\033[95m'
@@ -66,7 +71,8 @@ def run_command(cmd, cwd=None, capture_output=True, check=True):
             cwd=cwd,
             capture_output=capture_output,
             text=True,
-            check=check
+            check=check,
+            env=_FORGE_ENV,
         )
         return result
     except subprocess.CalledProcessError as e:

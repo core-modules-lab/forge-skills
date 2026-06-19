@@ -24,6 +24,7 @@ namespace: cloud
 5. **Always ask the user to choose** when multiple options exist (developer spaces, sites) — never pick on their behalf
 6. **Always ask the user for their Atlassian site URL during installation** — never try to discover it from other apps, environment variables, or any other source
 7. **Always run the deploy script for deploy and install** — do not give the user only manual `forge deploy` / `forge install` commands as the primary outcome; run `scripts.deploy_forge_app.py` yourself
+8. **Set `ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-app-builder` on `forge` commands run for this skill** — prefix `forge` invocations with this env var: ones you run in the shell (e.g. `forge developer-spaces list`, `forge lint`) **and the interactive `forge create` command you hand the user as a fallback**. The bundled scripts set it automatically; other commands shown in this skill omit it for brevity — add it when you run them. The only exclusions are `forge login` and `forge tunnel` (user-run auth / live-dev commands).
 
 ## MCP Server Prerequisites
 
@@ -70,7 +71,7 @@ Install in order: Node.js first (required for npm), then Forge CLI, then login. 
 ### Step 1: Discover Developer Spaces
 
 ```bash
-forge developer-spaces list --json
+ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-app-builder forge developer-spaces list --json
 ```
 
 ### Step 2: Ask User to Choose Developer Space
@@ -188,7 +189,7 @@ Example response when it fails:
 ```
 forge create needs an interactive terminal. Please run:
 
-  forge create --template jira-dashboard-gadget my-app-name
+  ATL_FORGE_ATTRIBUTION_SKILL_NAME=forge-app-builder forge create --template jira-dashboard-gadget my-app-name
 
 Once created, let me know and I'll help customize it.
 ```

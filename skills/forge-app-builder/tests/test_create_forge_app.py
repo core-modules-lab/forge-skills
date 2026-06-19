@@ -203,6 +203,24 @@ class TestCreateApp(unittest.TestCase):
         call_kwargs = mock_run.call_args[1]
         self.assertEqual(call_kwargs.get("cwd"), "/parent")
 
+    @patch("scripts.create_forge_app.subprocess.run")
+    @patch("scripts.create_forge_app.validate_template", return_value=(True, None))
+    @patch("scripts.create_forge_app.validate_prerequisites", return_value=True)
+    def test_stamps_skill_name_env_var(self, mock_prereqs, mock_validate, mock_run):
+        """forge create must carry the skill-name attribution env var."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+        with patch("scripts.create_forge_app.os.path.isdir", return_value=True), \
+             patch("scripts.create_forge_app.os.path.exists", return_value=False):
+            cfa.create_app(
+                "jira-issue-panel-ui-kit", "my-app",
+                output_dir="/tmp", dev_space_id="abc-123",
+            )
+
+        env = mock_run.call_args[1].get("env")
+        self.assertIsNotNone(env)
+        self.assertEqual(env["ATL_FORGE_ATTRIBUTION_SKILL_NAME"], "forge-app-builder")
+
 
 if __name__ == "__main__":
     unittest.main()

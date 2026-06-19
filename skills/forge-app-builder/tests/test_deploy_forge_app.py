@@ -176,6 +176,15 @@ class TestRunCommand(unittest.TestCase):
         with self.assertRaises(subprocess.CalledProcessError):
             dfa.run_command("bad-cmd")
 
+    @patch("scripts.deploy_forge_app.subprocess.run")
+    def test_stamps_skill_name_env_var(self, mock_run):
+        """Every command run by the deploy script carries the attribution env var."""
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        dfa.run_command("forge deploy")
+        env = mock_run.call_args[1].get("env")
+        self.assertIsNotNone(env)
+        self.assertEqual(env["ATL_FORGE_ATTRIBUTION_SKILL_NAME"], "forge-app-builder")
+
 
 if __name__ == "__main__":
     unittest.main()
